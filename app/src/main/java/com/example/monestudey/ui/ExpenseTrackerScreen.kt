@@ -70,39 +70,6 @@ fun ExpenseTrackerScreen(viewModel: ExpenseTrackerViewModel) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Botones de Agregar Ingreso y Gasto
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = {
-                        selectedTransactionType = TransactionType.INCOME
-                        showAddDialog = true
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF2E7D32)
-                    )
-                ) {
-                    Text("Agregar Ingreso")
-                }
-                Button(
-                    onClick = {
-                        selectedTransactionType = TransactionType.EXPENSE
-                        showAddDialog = true
-                    },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFFC62828)
-                    )
-                ) {
-                    Text("Agregar Gasto")
-                }
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
             // Ingresos y Gastos
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -156,6 +123,39 @@ fun ExpenseTrackerScreen(viewModel: ExpenseTrackerViewModel) {
                             fontWeight = FontWeight.Bold
                         )
                     }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Botones de Agregar Ingreso y Gasto
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Button(
+                    onClick = {
+                        selectedTransactionType = TransactionType.INCOME
+                        showAddDialog = true
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF2E7D32)
+                    )
+                ) {
+                    Text("Agregar Ingreso")
+                }
+                Button(
+                    onClick = {
+                        selectedTransactionType = TransactionType.EXPENSE
+                        showAddDialog = true
+                    },
+                    modifier = Modifier.weight(1f),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFC62828)
+                    )
+                ) {
+                    Text("Agregar Gasto")
                 }
             }
 
