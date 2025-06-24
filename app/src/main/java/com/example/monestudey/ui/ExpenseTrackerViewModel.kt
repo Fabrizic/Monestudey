@@ -6,10 +6,10 @@ import androidx.lifecycle.viewModelScope
 import com.example.monestudey.data.AppDatabase
 import com.example.monestudey.data.Transaction
 import com.example.monestudey.data.TransactionType
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.map
+import com.example.monestudey.data.entities.Category
+import com.example.monestudey.data.entities.CategoryType
+import com.example.monestudey.data.repository.TransactionRepository
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.util.Date
 
@@ -19,16 +19,29 @@ enum class TransactionFilter {
 
 class ExpenseTrackerViewModel(application: Application) : AndroidViewModel(application) {
     private val database = AppDatabase.getDatabase(application)
-    private val transactionDao = database.transactionDao()
+    private val transactionRepository = TransactionRepository(database.transactionDao())
+    private val categoryDao = database.categoryDao()
 
     private val _transactions = MutableStateFlow<List<Transaction>>(emptyList())
     val transactions: StateFlow<List<Transaction>> = _transactions.asStateFlow()
 
+    private val _filteredTransactions = MutableStateFlow<List<Transaction>>(emptyList())
+    val filteredTransactions: StateFlow<List<Transaction>> = _filteredTransactions.asStateFlow()
+
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories: StateFlow<List<Category>> = _categories.asStateFlow()
+
+    private val _incomeCategories = MutableStateFlow<List<Category>>(emptyList())
+    val incomeCategories: StateFlow<List<Category>> = _incomeCategories.asStateFlow()
+
+    private val _expenseCategories = MutableStateFlow<List<Category>>(emptyList())
+    val expenseCategories: StateFlow<List<Category>> = _expenseCategories.asStateFlow()
+
     private val _filter = MutableStateFlow(TransactionFilter.ALL)
     val filter: StateFlow<TransactionFilter> = _filter.asStateFlow()
 
-    private val _filteredTransactions = MutableStateFlow<List<Transaction>>(emptyList())
-    val filteredTransactions: StateFlow<List<Transaction>> = _filteredTransactions.asStateFlow()
+    private val _selectedCategory = MutableStateFlow<Category?>(null)
+    val selectedCategory: StateFlow<Category?> = _selectedCategory.asStateFlow()
 
     private val _totalIncome = MutableStateFlow(0.0)
     val totalIncome: StateFlow<Double> = _totalIncome.asStateFlow()
@@ -38,21 +51,21 @@ class ExpenseTrackerViewModel(application: Application) : AndroidViewModel(appli
 
     init {
         viewModelScope.launch {
-            transactionDao.getAllTransactions().collect { transactions ->
+            // Cargar transacciones
+            transactionRepository.getAllTransactions().collect { transactions ->
                 _transactions.value = transactions
                 updateFilteredTransactions()
+                updateTotals(transactions)
             }
         }
 
         viewModelScope.launch {
-            transactionDao.getTotalByType(TransactionType.INCOME).collect { total ->
-                _totalIncome.value = total ?: 0.0
-            }
-        }
-
-        viewModelScope.launch {
-            transactionDao.getTotalByType(TransactionType.EXPENSE).collect { total ->
-                _totalExpense.value = total ?: 0.0
+            // Cargar todas las categorías
+            categoryDao.getAllCategories().collect { categories ->
+                _categories.value = categories
+                // Separar categorías por tipo
+                _incomeCategories.value = categories.filter { it.type == CategoryType.INCOME }
+                _expenseCategories.value = categories.filter { it.type == CategoryType.EXPENSE }
             }
         }
     }
@@ -62,30 +75,59 @@ class ExpenseTrackerViewModel(application: Application) : AndroidViewModel(appli
         updateFilteredTransactions()
     }
 
-    private fun updateFilteredTransactions() {
-        _filteredTransactions.value = when (_filter.value) {
-            TransactionFilter.ALL -> _transactions.value
-            TransactionFilter.INCOME -> _transactions.value.filter { it.type == TransactionType.INCOME }
-            TransactionFilter.EXPENSE -> _transactions.value.filter { it.type == TransactionType.EXPENSE }
-        }
+    fun setSelectedCategory(category: Category?) {
+        _selectedCategory.value = category
+        updateFilteredTransactions()
     }
 
-    fun addTransaction(amount: Double, description: String, category: String, type: TransactionType) {
+    private fun updateFilteredTransactions() {
+        val filtered = when (_filter.value) {
+            TransactionFilter.INCOME -> _transactions.value.filter { it.type == TransactionType.INCOME }
+            TransactionFilter.EXPENSE -> _transactions.value.filter { it.type == TransactionType.EXPENSE }
+            TransactionFilter.ALL -> _transactions.value
+        }
+        _filteredTransactions.value = filtered
+    }
+
+    private fun updateTotals(transactions: List<Transaction>) {
+        _totalIncome.value = transactions
+            .filter { it.type == TransactionType.INCOME }
+            .sumOf { it.amount }
+
+        _totalExpense.value = transactions
+            .filter { it.type == TransactionType.EXPENSE }
+            .sumOf { it.amount }
+    }
+
+    fun addTransaction(
+        amount: Double,
+        description: String,
+        categoryId: Long,
+        type: TransactionType,
+        isRecurring: Boolean = false,
+        recurrencePattern: String? = null
+    ) {
         viewModelScope.launch {
             val transaction = Transaction(
                 amount = amount,
                 description = description,
-                category = category,
+                categoryId = categoryId,
                 type = type,
-                date = Date()
+                date = Date(),
+                isRecurring = isRecurring,
+                recurrencePattern = recurrencePattern
             )
-            transactionDao.insertTransaction(transaction)
+            transactionRepository.insertTransaction(transaction)
         }
     }
 
     fun deleteTransaction(transaction: Transaction) {
         viewModelScope.launch {
-            transactionDao.deleteTransaction(transaction)
+            transactionRepository.deleteTransaction(transaction)
         }
     }
-} 
+
+    fun getCategoriesByType(type: CategoryType): Flow<List<Category>> {
+        return categoryDao.getCategoriesByType(type)
+    }
+}

@@ -7,9 +7,20 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/runConfigurations.xml
+/.idea/misc.xml
+/.idea/gradle.xml
+/.idea/compiler.xml
+/.idea/kotlinc.xml
+/.idea/vcs.xml
+/.idea/migrations.xml
 .DS_Store
 /build
 /captures
 .externalNativeBuild
 .cxx
 local.properties
+
+# Dialogflow credentials
+app/src/main/res/raw/dialogflow-credentials.json

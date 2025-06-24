@@ -28,6 +28,13 @@ android {
             )
         }
     }
+    
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1,DEPENDENCIES}"
+        }
+    }
+    
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -69,7 +76,11 @@ dependencies {
     
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.7.3")
     
     // Navigation
     implementation("androidx.navigation:navigation-compose:2.7.7")
+
+    // OkHttp para llamadas HTTP
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 }

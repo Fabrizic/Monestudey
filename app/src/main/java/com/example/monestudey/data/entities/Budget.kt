@@ -1,14 +1,13 @@
-package com.example.monestudey.data
+package com.example.monestudey.data.entities
 
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 import androidx.room.Index
-import com.example.monestudey.data.entities.Category
 import java.util.Date
 
 @Entity(
-    tableName = "transactions",
+    tableName = "budgets",
     foreignKeys = [
         ForeignKey(
             entity = Category::class,
@@ -19,20 +18,12 @@ import java.util.Date
     ],
     indices = [Index(value = ["categoryId"])]
 )
-data class Transaction(
+data class Budget(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0,
-    val amount: Double,
-    val description: String,
     val categoryId: Long,
-    val type: TransactionType,
-    val date: Date,
-    val isRecurring: Boolean = false,
-    val recurrencePattern: String? = null,
-    val createdAt: Date = Date()
-)
-
-enum class TransactionType {
-    INCOME,
-    EXPENSE
-} 
+    val amount: Double,
+    val startDate: Date,
+    val endDate: Date,
+    val isActive: Boolean = true
+) 
